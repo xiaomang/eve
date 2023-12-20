@@ -1,17 +1,24 @@
-from fastapi import APIRouter, Depends
-from pymongo.database import Database
+import time
 
-from dependencies import DB
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel
+
+from dependencies import remote_ip
 
 router = APIRouter()
 
 
-@router.get(path='/', name='默认首页')
-async def default(
-    db: Database = Depends(DB),
+class FindResponse(BaseModel):
+    ip: str
+    curr_time: float
+
+
+@router.get(path='/', name='默认首页', response_model=FindResponse)
+async def find(
+    ip: str = Depends(remote_ip),
 ):
-    user_col = db.get_collection('users')
     res = {
-        'data': list(user_col.find({}, {'_id': False, 'password': False, 'ua': False}))
+        'ip': ip,
+        'curr_time': time.time(),
     }
     return res
